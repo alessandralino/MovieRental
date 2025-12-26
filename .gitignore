@@ -5,3 +5,5 @@
 /MovieRental/obj
 /.vs
 /MovieRental/bin/Debug/net8.0
+/MovieRental.Tests/bin/Debug/net8.0
+/MovieRental.Tests/obj
