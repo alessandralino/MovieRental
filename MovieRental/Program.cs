@@ -1,3 +1,4 @@
+using MovieRental;
 using MovieRental.Data;
 using MovieRental.Movie;
 using MovieRental.Rental;
@@ -7,9 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddEntityFrameworkSqlite().AddDbContext<MovieRentalDbContext>();
 
-builder.Services.AddSingleton<IRentalFeatures, RentalFeatures>();
+//Add dependencies
+builder.Services.AddDbContextDependencies();
+builder.Services.AddFeaturesDependencies();
+
 
 var app = builder.Build();
 
