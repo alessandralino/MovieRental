@@ -24,7 +24,7 @@ namespace MovieRental.Tests
             };
 
             mockRepo.Setup(
-                r => r.AddAsync(
+                r => r.SaveAsync(
                     It.IsAny<ER.Rental>()))
             .ReturnsAsync((ER.Rental r) => r);
 
@@ -35,7 +35,7 @@ namespace MovieRental.Tests
 
             // Assert
             mockRepo.Verify(
-                r => r.AddAsync(It.Is<ER.Rental>(
+                r => r.SaveAsync(It.Is<ER.Rental>(
                 rental => rental.MovieId == input.MovieId &&
                           rental.CustomerName == input.CustomerName)), Times.Once);
 

@@ -18,7 +18,6 @@ namespace MovieRental.Controllers
 
 
         [HttpPost]
-        [Route("save")]
         public async Task<IActionResult> Post(
             [FromBody] RentalSaveInput input,
             [FromServices] IValidator<RentalSaveInput> validator)
@@ -42,7 +41,6 @@ namespace MovieRental.Controllers
         }
 
         [HttpGet]
-        [Route("getByCustomerName")]
         public async Task<IActionResult> GetRentalsByCustomerName(
             string customerName,
             [FromServices] IValidator<string> validator)

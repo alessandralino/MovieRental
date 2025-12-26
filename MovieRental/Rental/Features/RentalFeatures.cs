@@ -25,7 +25,7 @@ namespace MovieRental.Rental.Features
                 MovieId = input.MovieId
             };
 
-            var savedRental = await _repository.AddAsync(rentalEntity);
+            var savedRental = await _repository.SaveAsync(rentalEntity);
 
             return new RentalSaveOutput
             {

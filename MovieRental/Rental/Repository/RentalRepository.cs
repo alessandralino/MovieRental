@@ -13,7 +13,7 @@ namespace MovieRental.Rental.Repository
             _context = context;
         }
 
-        public async Task<ER.Rental> AddAsync(ER.Rental rental)
+        public async Task<ER.Rental> SaveAsync(ER.Rental rental)
         {
             if (rental.Movie != null)
             {
