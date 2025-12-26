@@ -12,12 +12,12 @@ namespace MovieRental.Rental
 		}
 
 		//TODO: make me async :(
-		public Rental Save(Rental rental)
+		public async Task<Rental> Save(Rental rental)
 		{
 			_movieRentalDb.Rentals.Add(rental);
-			_movieRentalDb.SaveChanges();
-			return rental;
-		}
+            await _movieRentalDb.SaveChangesAsync();
+            return rental; 
+        }
 
 		//TODO: finish this method and create an endpoint for it
 		public IEnumerable<Rental> GetRentalsByCustomerName(string customerName)

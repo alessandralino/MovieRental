@@ -13,7 +13,7 @@ namespace MovieRental.Movie
 		public Movie Save(Movie movie)
 		{
 			_movieRentalDb.Movies.Add(movie);
-			_movieRentalDb.SaveChanges();
+			_movieRentalDb.SaveChangesAsync();
 			return movie;
 		}
 
