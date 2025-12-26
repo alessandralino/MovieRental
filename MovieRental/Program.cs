@@ -10,9 +10,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Add dependencies
-builder.Services.AddDbContextDependencies();
-builder.Services.AddFeaturesDependencies();
-
+builder.Services.AddMovieRentalDependencies();
 
 var app = builder.Build();
 
