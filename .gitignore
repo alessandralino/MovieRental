@@ -7,3 +7,5 @@
 /MovieRental/bin/Debug/net8.0
 /MovieRental.Tests/bin/Debug/net8.0
 /MovieRental.Tests/obj
+/MovieRental.Tests/libman.json
+/MovieRental/libman.json

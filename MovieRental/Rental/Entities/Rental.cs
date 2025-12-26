@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema; 
 
 namespace MovieRental.Rental.Entities
 {
@@ -8,14 +8,16 @@ namespace MovieRental.Rental.Entities
 		[Key]
 		public int Id { get; set; }
 		public int DaysRented { get; set; }
-		public Movie.Movie? Movie { get; set; }
+		public string PaymentMethod { get; set; }
+
+        public Movie.Movie? Movie { get; set; }
 
 		[ForeignKey("Movie")]
 		public int MovieId { get; set; }
 
-		public string PaymentMethod { get; set; }
+        public Customer.Enitities.Customer? Customer { get; set; }
 
-		// TODO: we should have a table for the customers
-		public string CustomerName { get; set; }
-	}
+        [ForeignKey("Customer")]
+        public int CustomerId { get; set; }
+    }
 }

@@ -2,9 +2,10 @@
 {
     public class RentalGetByCustomerNameOutput
     {
+        public int Id { get; set; }
         public Movie.Movie? Movie { get; set; }
         public int DaysRented { get; set; } 
         public string PaymentMethod { get; set; }
-        public string CustomerName { get; set; }
+        public Customer.Enitities.Customer CustomerId { get; set; }
     }
 }

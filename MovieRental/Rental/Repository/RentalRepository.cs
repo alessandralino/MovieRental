@@ -18,15 +18,24 @@ namespace MovieRental.Rental.Repository
             if (rental.Movie != null)
             {
                 _context.Attach(rental.Movie);
-            } 
+            }
+
+            if (rental.Customer != null)
+            {
+                _context.Attach(rental.Customer);
+            }
 
             _context.Rentals.Add(rental);
 
             await _context.SaveChangesAsync();
 
             await _context.Entry(rental)
-                  .Reference(r => r.Movie)
+                  .Reference(r => r.Movie) 
                   .LoadAsync();
+
+            await _context.Entry(rental)
+                .Reference(r => r.Customer)
+                .LoadAsync();
 
             return rental;
         }
@@ -34,8 +43,9 @@ namespace MovieRental.Rental.Repository
         public async Task<IEnumerable<ER.Rental>> GetByCustomerNameAsync(string customerName)
         {
             return await _context.Rentals
-                .Where(r => EF.Functions.Like(r.CustomerName, customerName))
+                .Where(r => EF.Functions.Like(r.Customer!.Name, $"%{customerName}%"))
                 .Include(r => r.Movie)
+                .Include(r => r.Customer)
                 .AsNoTracking()
                 .ToListAsync();
         }

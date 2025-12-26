@@ -21,7 +21,7 @@ namespace MovieRental.Rental.Features
                 Movie = input.Movie,
                 DaysRented = input.DaysRented,
                 PaymentMethod = input.PaymentMethod,
-                CustomerName = input.CustomerName,
+                CustomerId = input.CustomerId,  
                 MovieId = input.MovieId
             };
 
@@ -29,10 +29,11 @@ namespace MovieRental.Rental.Features
 
             return new RentalSaveOutput
             {
+                Id = savedRental.Id,
                 Movie = savedRental.Movie,
                 DaysRented = savedRental.DaysRented,
                 PaymentMethod = savedRental.PaymentMethod,
-                CustomerName = savedRental.CustomerName
+                Customer = savedRental.Customer!
             };
         }
 
@@ -43,10 +44,11 @@ namespace MovieRental.Rental.Features
 
             return rentals.Select(r => new RentalGetByCustomerNameOutput
             {
+                Id = r.Id,
                 Movie = r.Movie,
                 DaysRented = r.DaysRented,
                 PaymentMethod = r.PaymentMethod,
-                CustomerName = r.CustomerName
+                CustomerId = r.Customer!,
             });
         }
 	}

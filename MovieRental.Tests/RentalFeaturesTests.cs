@@ -19,14 +19,24 @@ namespace MovieRental.Tests
                 MovieId = 1,
                 DaysRented = 3,
                 PaymentMethod = "card",
-                CustomerName = "Alice",
+                CustomerId = 1,
                 Movie = new Movie.Movie { Id = 1, Title = "Inception" }
             };
+ 
+            mockRepo.Setup(r => r.SaveAsync(It.IsAny<ER.Rental>()))
+                    .ReturnsAsync((ER.Rental r) =>
+                    {
+                        r.Movie = r.Movie ?? new Movie.Movie 
+                        { 
+                            Id = r.MovieId, Title = "Inception" 
+                        };
+                        r.Customer = new Customer.Enitities.Customer
+                        { 
+                            Id = r.CustomerId, Name = "Alice" 
+                        };
 
-            mockRepo.Setup(
-                r => r.SaveAsync(
-                    It.IsAny<ER.Rental>()))
-            .ReturnsAsync((ER.Rental r) => r);
+                        return r;
+                    });
 
             var features = new RentalFeatures(mockRepo.Object);
 
@@ -34,15 +44,13 @@ namespace MovieRental.Tests
             var result = await features.Save(input);
 
             // Assert
-            mockRepo.Verify(
-                r => r.SaveAsync(It.Is<ER.Rental>(
-                rental => rental.MovieId == input.MovieId &&
-                          rental.CustomerName == input.CustomerName)), Times.Once);
+            mockRepo.Verify(r => r.SaveAsync(It.Is<ER.Rental>(
+                r => r.MovieId == input.MovieId && r.CustomerId == input.CustomerId)), Times.Once);
 
-            Assert.Equal(input.CustomerName, result.CustomerName);
+            Assert.Equal("Alice", result.Customer.Name);         
             Assert.Equal(input.DaysRented, result.DaysRented);
             Assert.Equal(input.PaymentMethod, result.PaymentMethod);
-            Assert.Equal(input.Movie, result.Movie);
+            Assert.Equal("Inception", result.Movie!.Title); 
         }
 
         [Fact]
@@ -55,10 +63,26 @@ namespace MovieRental.Tests
 
             var rentalsFromRepo = new List<ER.Rental>
             {
-                new ER.Rental { MovieId = 1, DaysRented = 3, CustomerName = "Alice", PaymentMethod = "card", Movie = new Movie.Movie { Id = 1, Title = "Inception" } },
-                new ER.Rental { MovieId = 2, DaysRented = 2, CustomerName = "Alice", PaymentMethod = "cash", Movie = new Movie.Movie { Id = 2, Title = "Titanic" } }
+                new ER.Rental
+                {
+                    MovieId = 1,
+                    DaysRented = 3,
+                    CustomerId = 1,
+                    PaymentMethod = "card",
+                    Movie = new Movie.Movie { Id = 1, Title = "Inception" },
+                    Customer = new Customer.Enitities.Customer { Id = 1, Name = "Alice" }  
+                },
+                new ER.Rental
+                {
+                    MovieId = 2,
+                    DaysRented = 2,
+                    CustomerId = 1,
+                    PaymentMethod = "cash",
+                    Movie = new Movie.Movie { Id = 2, Title = "Titanic" },
+                    Customer = new Customer.Enitities.Customer { Id = 1, Name = "Alice" }  
+                }
             };
-             
+
             mockRepo.Setup(r => r.GetByCustomerNameAsync(customerName))
                     .ReturnsAsync(rentalsFromRepo);
 
@@ -75,7 +99,8 @@ namespace MovieRental.Tests
             foreach (var rental in result)
             {
                 var original = rentalsFromRepo.First(r => r.MovieId == rental.Movie!.Id);
-                Assert.Equal(original.CustomerName, rental.CustomerName);
+                Assert.NotNull(original.Customer);
+                Assert.Equal(original.Customer.Name, customerName);
                 Assert.Equal(original.DaysRented, rental.DaysRented);
                 Assert.Equal(original.PaymentMethod, rental.PaymentMethod);
                 Assert.Equal(original.Movie, rental.Movie);

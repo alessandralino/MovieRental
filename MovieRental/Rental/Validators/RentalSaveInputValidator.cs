@@ -15,9 +15,8 @@ namespace MovieRental.Rental.Validators
                 .GreaterThan(0)
                 .WithMessage("DaysRented must be greater than zero");
 
-            RuleFor(x => x.CustomerName)
-                .NotEmpty()
-                .MaximumLength(100);
+            RuleFor(x => x.CustomerId)
+                .NotEmpty();
 
             RuleFor(x => x.PaymentMethod)
                 .NotEmpty();

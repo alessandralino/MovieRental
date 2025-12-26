@@ -6,6 +6,6 @@
         public int DaysRented { get; set; }
         public int MovieId { get; set; }
         public string PaymentMethod { get; set; }
-        public string CustomerName { get; set; }
+        public int CustomerId { get; set; }
     }
 }
