@@ -29,7 +29,6 @@ namespace MovieRental
         {  
             services.AddScoped<IRentalFeatures, RentalFeatures>();
             services.AddScoped<IMovieFeatures, MovieFeatures>();
-
             return services;
         }
     }
