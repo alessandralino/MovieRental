@@ -7,7 +7,7 @@ namespace MovieRental.Data
 	public class MovieRentalDbContext : DbContext
 	{
 		public DbSet<Movie.Movie> Movies { get; set; }
-		public virtual DbSet<Rental.Rental> Rentals { get; set; }
+		public DbSet<Rental.Entities.Rental> Rentals { get; set; }
 
 		private string DbPath { get; }
 
