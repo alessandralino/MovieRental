@@ -22,7 +22,5 @@ namespace MovieRental.Movie
 		{
 			return _movieRentalDb.Movies.ToList();
 		}
-
-
 	}
 }
