@@ -19,26 +19,50 @@ namespace MovieRental.Rental.Features
         } 
 
 		public async Task<RentalSaveOutput> Save(RentalSaveInput input)
-		{
-            var rentalEntity = new ER.Rental
-            {
-                Movie = input.Movie,
-                DaysRented = input.DaysRented,
-                PaymentMethod = input.PaymentMethod,
-                CustomerId = input.CustomerId,  
-                MovieId = input.MovieId
-            };
+		{ 
+            var totalAmount = CalculateRentalPrice(input.DaysRented);
 
-            var savedRental = await _repository.SaveAsync(rentalEntity);
+            var paymentResult = await _paymentService.ProcessPaymentAsync(input.PaymentMethod, totalAmount);
 
-            return new RentalSaveOutput
+            if (!paymentResult.IsSuccess)
+            { 
+                throw new InvalidOperationException($"Payment failed: {paymentResult.ErrorMessage}");
+            }
+
+            try 
             {
-                Id = savedRental.Id,
-                Movie = savedRental.Movie,
-                DaysRented = savedRental.DaysRented,
-                PaymentMethod = savedRental.PaymentMethod,
-                Customer = savedRental.Customer!
-            };
+                var rentalEntity = new ER.Rental
+                {
+                    Movie = input.Movie,
+                    DaysRented = input.DaysRented,
+                    PaymentMethod = input.PaymentMethod.ToUpper(),
+                    CustomerId = input.CustomerId,
+                    MovieId = input.MovieId, 
+                };
+
+                var savedRental = await _repository.SaveAsync(rentalEntity);
+
+                return new RentalSaveOutput
+                {
+                    Id = savedRental.Id,
+                    Movie = savedRental.Movie,
+                    DaysRented = savedRental.DaysRented, 
+                    Customer = savedRental.Customer!, 
+                    PaymentDetails = new PaymentAmountRentalSaveOutput
+                    {
+                        PaymentMethod = savedRental.PaymentMethod,
+                        PaymentAmount = totalAmount,
+                        TransactionId = paymentResult.TransactionId!,
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                //TODO: Create rollback payment logic here
+                //TODO: Create payment table to be able to track payments and do rollbacks
+                throw new InvalidOperationException(
+                    $"Error saving rental to database after successful payment. Please contact support.", ex);
+            } 
         }
 		
 		public async Task<IEnumerable<RentalGetByCustomerNameOutput>> GetRentalsByCustomerName(string customerName)
@@ -51,8 +75,14 @@ namespace MovieRental.Rental.Features
                 Movie = r.Movie,
                 DaysRented = r.DaysRented,
                 PaymentMethod = r.PaymentMethod,
-                CustomerId = r.Customer!,
+                Customer = r.Customer!,         
             });
         }
-	}
+
+        private static decimal CalculateRentalPrice(int daysRented)
+        {
+            var valuePerDay = 2.50m;
+            return daysRented * valuePerDay;
+        }
+    }
 }
