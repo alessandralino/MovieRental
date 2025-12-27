@@ -1,4 +1,6 @@
 using Moq;
+using MovieRental.PaymentProviders.Entities;
+using MovieRental.PaymentProviders.Service;
 using MovieRental.Rental.DTO;
 using MovieRental.Rental.Features;
 using MovieRental.Rental.Repository;
@@ -13,12 +15,13 @@ namespace MovieRental.Tests
         {
             // Arrange
             var mockRepo = new Mock<IRentalRepository>();
+            var mockPayment = new Mock<IPaymentService>();
 
             var input = new RentalSaveInput
             {
                 MovieId = 1,
                 DaysRented = 3,
-                PaymentMethod = "card",
+                PaymentMethod = "mbway",
                 CustomerId = 1,
                 Movie = new Movie.Movie { Id = 1, Title = "Inception" }
             };
@@ -38,7 +41,16 @@ namespace MovieRental.Tests
                         return r;
                     });
 
-            var features = new RentalFeatures(mockRepo.Object);
+            mockPayment.Setup(s => s.ProcessPaymentAsync(
+                        It.IsAny<string>(), 
+                        It.IsAny<decimal>()))
+                .ReturnsAsync(new PaymentResult
+                {
+                    IsSuccess = true,
+                    TransactionId = "TX123"
+                });
+
+            var features = new RentalFeatures(mockRepo.Object, mockPayment.Object);
 
             // Act
             var result = await features.Save(input);
@@ -49,7 +61,7 @@ namespace MovieRental.Tests
 
             Assert.Equal("Alice", result.Customer.Name);         
             Assert.Equal(input.DaysRented, result.DaysRented);
-            Assert.Equal(input.PaymentMethod, result.PaymentMethod);
+            Assert.Equal(input.PaymentMethod, result.PaymentDetails.PaymentMethod);
             Assert.Equal("Inception", result.Movie!.Title); 
         }
 
@@ -58,6 +70,7 @@ namespace MovieRental.Tests
         {
             // Arrange
             var mockRepo = new Mock<IRentalRepository>();
+            var mockPayment = new Mock<IPaymentService>();
 
             var customerName = "Alice";
 
@@ -86,7 +99,7 @@ namespace MovieRental.Tests
             mockRepo.Setup(r => r.GetByCustomerNameAsync(customerName))
                     .ReturnsAsync(rentalsFromRepo);
 
-            var features = new RentalFeatures(mockRepo.Object);
+            var features = new RentalFeatures(mockRepo.Object, mockPayment.Object);
 
             // Act
             var result = await features.GetRentalsByCustomerName(customerName);
