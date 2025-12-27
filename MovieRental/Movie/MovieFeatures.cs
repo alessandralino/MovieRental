@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MovieRental.Data;
 
 namespace MovieRental.Movie
@@ -21,7 +22,7 @@ namespace MovieRental.Movie
 		// TODO: tell us what is wrong in this method? Forget about the async, what other concerns do you have?
 		public IQueryable<Movie> GetAll()
 		{
-			return _movieRentalDb.Movies;
-		}
+			return _movieRentalDb.Movies.AsNoTracking();
+        }
 	}
 }
