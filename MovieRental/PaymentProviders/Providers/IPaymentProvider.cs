@@ -5,6 +5,6 @@ namespace MovieRental.PaymentProviders.Providers
     public interface IPaymentProvider
     {
         string ProviderName { get; }
-        Task<PaymentResult> Pay(double amount);
+        Task<PaymentResult> Pay(decimal amount);
     }
 }
