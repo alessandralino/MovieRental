@@ -7,13 +7,13 @@ namespace MovieRental.PaymentProviders.Providers
         private const int ProcessingDelayMs = 150;
         private const int FailureChance = 20; // 1 in 20 = 5%
 
-        public string ProviderName => "PayPal";
+        public string PaymentMethodName => "PayPal";
 
         public async Task<PaymentResult> Pay(decimal amount)
         {
             if (amount <= 0)
             {
-                return PaymentResult.Failure("Valor do pagamento inválido");
+                return PaymentResult.Failure("Invalid payment amount.");
             }
 
             try 
@@ -22,7 +22,7 @@ namespace MovieRental.PaymentProviders.Providers
 
                 if (ShouldFail())
                 {
-                    return PaymentResult.Failure(ProviderName + " account temporarily unavailable.");
+                    return PaymentResult.Failure($"'{PaymentMethodName}' account temporarily");
                 }
 
                 var transactionId = GenerateTransactionId();
@@ -31,7 +31,7 @@ namespace MovieRental.PaymentProviders.Providers
             }
             catch (Exception)
             {
-                return PaymentResult.Failure("Internal error in " + ProviderName + " processing.");
+                return PaymentResult.Failure($"Internal error in '{PaymentMethodName}' processing.");
             }            
         }
 

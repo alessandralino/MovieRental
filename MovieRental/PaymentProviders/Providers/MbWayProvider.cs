@@ -7,7 +7,7 @@ namespace MovieRental.PaymentProviders.Providers
         private const int ProcessingDelayMs = 150;
         private const int FailureChance = 20; // 1 in 20 = 5%
 
-        public string ProviderName => "MBWay"; 
+        public string PaymentMethodName => "MBWay"; 
 
         public async Task<PaymentResult> Pay(decimal amount)
         {
@@ -22,16 +22,16 @@ namespace MovieRental.PaymentProviders.Providers
 
                 if (ShouldFail())
                 {
-                    return PaymentResult.Failure(ProviderName + " account temporarily unavailable.");
+                    return PaymentResult.Failure($"'{PaymentMethodName}' account temporarily");
                 }
-
+                 
                 var transactionId = GenerateTransactionId();
 
                 return PaymentResult.Success(transactionId);
             }
             catch (Exception)
             {
-                return PaymentResult.Failure("Internal error in "+ ProviderName +" processing.");
+                return PaymentResult.Failure($"Internal error in '{PaymentMethodName}' processing.");
             }
         }
 
