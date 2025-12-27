@@ -41,17 +41,8 @@ namespace MovieRental.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetRentalsByCustomerName(
-            string customerName,
-            [FromServices] IValidator<string> validator)
+        public async Task<IActionResult> GetRentalsByCustomerName(string customerName)
         {
-            var validationResult = await validator.ValidateAsync(customerName);
-
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
-            }
-
             try
             { 
                 return Ok(await _features.GetRentalsByCustomerName(customerName));

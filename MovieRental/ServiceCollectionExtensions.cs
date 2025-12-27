@@ -53,8 +53,7 @@ namespace MovieRental
         public static IServiceCollection AddValidatorDependencies(
         this IServiceCollection services)
         {
-            services.AddScoped<IValidator<RentalSaveInput>, RentalSaveInputValidator>();
-            services.AddScoped<IValidator<string>, CustomerNameValidator>();
+            services.AddScoped<IValidator<RentalSaveInput>, RentalSaveInputValidator>(); 
 
             return services;
         }
