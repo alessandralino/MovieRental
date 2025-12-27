@@ -1,4 +1,5 @@
-﻿using MovieRental.Rental.DTO;
+﻿using MovieRental.PaymentProviders.Service;
+using MovieRental.Rental.DTO;
 using MovieRental.Rental.Repository;
 using ER = MovieRental.Rental.Entities;
 
@@ -7,13 +8,16 @@ namespace MovieRental.Rental.Features
 	public class RentalFeatures : IRentalFeatures
 	{
         private readonly IRentalRepository _repository;
+        private readonly IPaymentService _paymentService;
 
-        public RentalFeatures(IRentalRepository repository)
+        public RentalFeatures(
+            IRentalRepository repository,
+            IPaymentService paymentService)
         {
             _repository = repository;
+            _paymentService = paymentService;
         } 
 
-		//TODO: make me async :(
 		public async Task<RentalSaveOutput> Save(RentalSaveInput input)
 		{
             var rentalEntity = new ER.Rental
@@ -36,8 +40,7 @@ namespace MovieRental.Rental.Features
                 Customer = savedRental.Customer!
             };
         }
-
-		//TODO: finish this method and create an endpoint for it
+		
 		public async Task<IEnumerable<RentalGetByCustomerNameOutput>> GetRentalsByCustomerName(string customerName)
 		{
             var rentals = await _repository.GetByCustomerNameAsync(customerName);
