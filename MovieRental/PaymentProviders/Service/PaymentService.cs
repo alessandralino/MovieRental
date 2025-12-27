@@ -9,19 +9,31 @@ namespace MovieRental.PaymentProviders.Service
         public PaymentService(IEnumerable<IPaymentProvider> providers)
         {
             _providers = providers.ToDictionary(
-                    p => p.ProviderName,
+                    p => p.PaymentMethodName,
                     p => p, 
                     StringComparer.OrdinalIgnoreCase);
         }   
-
-        public IEnumerable<string> GetAvailablePaymentMethods()
+         
+        async Task<PaymentResult> IPaymentService.ProcessPaymentAsync(string paymentMethod, decimal amount)
         {
-            throw new NotImplementedException();
-        }
+            if (string.IsNullOrWhiteSpace(paymentMethod))
+            {
+                return PaymentResult.Failure("Payment method is required");
+            }
 
-        public Task<PaymentResult> ProcessPaymentAsync(string paymentMethod, double amount)
-        {
-            throw new NotImplementedException();
+            if (amount <= 0)
+            {
+                return PaymentResult.Failure("The value must be greater than zero");
+            }
+
+            if (!_providers.TryGetValue(paymentMethod, out var provider))
+            {
+                return PaymentResult.Failure($"Payment method '{paymentMethod}' not supported");
+            }
+
+            var result = await provider.Pay(amount);
+
+            return result;
         }
     }
 }

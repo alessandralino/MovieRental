@@ -4,7 +4,7 @@ namespace MovieRental.PaymentProviders.Providers
 {
     public class MbWayProvider : IPaymentProvider
     {
-        private const int ProcessingDelayMs = 150;
+        private const int ProcessingDelayMs = 100;
         private const int FailureChance = 20; // 1 in 20 = 5%
 
         public string PaymentMethodName => "MBWay"; 
@@ -42,7 +42,7 @@ namespace MovieRental.PaymentProviders.Providers
 
         private static string GenerateTransactionId()
         {
-            return $"E_{Guid.NewGuid():N}";
+            return $"MB_{Guid.NewGuid():N}";
         }
     }
 }
