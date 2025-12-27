@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using MovieRental.Data;
 using MovieRental.Movie;
+using MovieRental.PaymentProviders.Providers;
+using MovieRental.PaymentProviders.Service;
 using MovieRental.Rental.DTO;
 using MovieRental.Rental.Features;
 using MovieRental.Rental.Repository;
@@ -17,6 +19,7 @@ namespace MovieRental
             services.AddFeaturesDependencies();
             services.AddRepositoryDependencies();
             services.AddValidatorDependencies();
+            services.AddPaymentDependencies();
 
             return services;
         }
@@ -52,6 +55,15 @@ namespace MovieRental
         {
             services.AddScoped<IValidator<RentalSaveInput>, RentalSaveInputValidator>();
             services.AddScoped<IValidator<string>, CustomerNameValidator>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddPaymentDependencies(this IServiceCollection services)
+        {
+            services.AddScoped<IPaymentProvider, MbWayProvider>();
+            services.AddScoped<IPaymentProvider, PayPalProvider>();
+            services.AddScoped<IPaymentService, PaymentService>();
 
             return services;
         }
