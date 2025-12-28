@@ -1,7 +1,5 @@
 using MovieRental;
 using MovieRental.Data;
-using MovieRental.Movie;
-using MovieRental.Rental;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,9 +8,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Add dependencies
-builder.Services.AddDbContextDependencies();
-builder.Services.AddFeaturesDependencies();
-
+builder.Services.AddMovieRentalDependencies();
 
 var app = builder.Build();
 

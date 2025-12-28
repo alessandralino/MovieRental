@@ -3,5 +3,5 @@
 public interface IMovieFeatures
 {
 	Movie Save(Movie movie);
-	List<Movie> GetAll();
+    IQueryable<Movie> GetAll();
 }
