@@ -9,7 +9,7 @@ namespace MovieRental.Rental.Features
 	{
         private readonly IRentalRepository _repository;
         private readonly IPaymentService _paymentService;
-        private readonly ILogger<RentalFeatures> _logger;
+        private readonly ILogger<RentalFeatures> _logger; 
 
         public RentalFeatures(
             IRentalRepository repository,
