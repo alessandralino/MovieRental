@@ -9,13 +9,16 @@ namespace MovieRental.Rental.Features
 	{
         private readonly IRentalRepository _repository;
         private readonly IPaymentService _paymentService;
+        private readonly ILogger<RentalFeatures> _logger;
 
         public RentalFeatures(
             IRentalRepository repository,
-            IPaymentService paymentService)
+            IPaymentService paymentService,
+            ILogger<RentalFeatures> logger)
         {
             _repository = repository;
             _paymentService = paymentService;
+            _logger = logger;
         } 
 
 		public async Task<RentalSaveOutput> Save(RentalSaveInput input)
@@ -25,8 +28,15 @@ namespace MovieRental.Rental.Features
             var paymentResult = await _paymentService.ProcessPaymentAsync(input.PaymentMethod, totalAmount);
 
             if (!paymentResult.IsSuccess)
-            { 
-                throw new InvalidOperationException($"Payment failed: {paymentResult.ErrorMessage}");
+            {
+                _logger.LogWarning(
+                            "Payment failed. Rental will not be created. MovieId: {MovieId}, PaymentMethod: {PaymentMethod}, Error: {Error}",
+                            input.MovieId,
+                            input.PaymentMethod,
+                            paymentResult.ErrorMessage);
+
+                throw new InvalidOperationException(
+                    $"Payment failed: {paymentResult.ErrorMessage}");
             }
 
             try 
@@ -58,10 +68,18 @@ namespace MovieRental.Rental.Features
             }
             catch (Exception ex)
             {
-                //TODO: Create rollback payment logic here
-                //TODO: Create payment table to be able to track payments and do rollbacks
+                _logger.LogError(
+                   ex,
+                   "Error saving rental to database after successful payment. TransactionId: {TransactionId}, MovieId: {MovieId}, CustomerId: {CustomerId}",
+                   paymentResult.TransactionId,
+                   input.MovieId,
+                   input.CustomerId);
+
+                // TODO: Implement a compensation mechanism here (refund)
+
                 throw new InvalidOperationException(
-                    $"Error saving rental to database after successful payment. Please contact support.", ex);
+                    "Error saving rental to database after successful payment. Please contact support.",
+                    ex);
             } 
         }
 		
