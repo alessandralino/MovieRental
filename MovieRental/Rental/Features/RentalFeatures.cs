@@ -1,4 +1,5 @@
-﻿using MovieRental.Rental.DTO;
+﻿using MovieRental.PaymentProviders.Service;
+using MovieRental.Rental.DTO;
 using MovieRental.Rental.Repository;
 using ER = MovieRental.Rental.Entities;
 
@@ -7,37 +8,81 @@ namespace MovieRental.Rental.Features
 	public class RentalFeatures : IRentalFeatures
 	{
         private readonly IRentalRepository _repository;
+        private readonly IPaymentService _paymentService;
+        private readonly ILogger<RentalFeatures> _logger; 
 
-        public RentalFeatures(IRentalRepository repository)
+        public RentalFeatures(
+            IRentalRepository repository,
+            IPaymentService paymentService,
+            ILogger<RentalFeatures> logger)
         {
             _repository = repository;
+            _paymentService = paymentService;
+            _logger = logger;
         } 
 
-		//TODO: make me async :(
 		public async Task<RentalSaveOutput> Save(RentalSaveInput input)
-		{
-            var rentalEntity = new ER.Rental
-            {
-                Movie = input.Movie,
-                DaysRented = input.DaysRented,
-                PaymentMethod = input.PaymentMethod,
-                CustomerId = input.CustomerId,  
-                MovieId = input.MovieId
-            };
+		{ 
+            var totalAmount = CalculateRentalPrice(input.DaysRented);
 
-            var savedRental = await _repository.SaveAsync(rentalEntity);
+            var paymentResult = await _paymentService.ProcessPaymentAsync(input.PaymentMethod, totalAmount);
 
-            return new RentalSaveOutput
+            if (!paymentResult.IsSuccess)
             {
-                Id = savedRental.Id,
-                Movie = savedRental.Movie,
-                DaysRented = savedRental.DaysRented,
-                PaymentMethod = savedRental.PaymentMethod,
-                Customer = savedRental.Customer!
-            };
+                _logger.LogWarning(
+                            "Payment failed. Rental will not be created. MovieId: {MovieId}, PaymentMethod: {PaymentMethod}, Error: {Error}",
+                            input.MovieId,
+                            input.PaymentMethod,
+                            paymentResult.ErrorMessage);
+
+                throw new InvalidOperationException(
+                    $"Payment failed: {paymentResult.ErrorMessage}");
+            }
+
+            try 
+            {
+                var rentalEntity = new ER.Rental
+                {
+                    Movie = input.Movie,
+                    DaysRented = input.DaysRented,
+                    PaymentMethod = input.PaymentMethod.ToUpper(),
+                    CustomerId = input.CustomerId,
+                    MovieId = input.MovieId, 
+                };
+
+                var savedRental = await _repository.SaveAsync(rentalEntity);
+
+                return new RentalSaveOutput
+                {
+                    Id = savedRental.Id,
+                    Movie = savedRental.Movie,
+                    DaysRented = savedRental.DaysRented, 
+                    Customer = savedRental.Customer!, 
+                    PaymentDetails = new PaymentAmountRentalSaveOutput
+                    {
+                        PaymentMethod = savedRental.PaymentMethod,
+                        PaymentAmount = totalAmount,
+                        TransactionId = paymentResult.TransactionId!,
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                   ex,
+                   "Error saving rental to database after successful payment. TransactionId: {TransactionId}, MovieId: {MovieId}, CustomerId: {CustomerId}",
+                   paymentResult.TransactionId,
+                   input.MovieId,
+                   input.CustomerId);
+
+                // TODO: Implement a compensation mechanism here (refund)
+
+                throw new InvalidOperationException(
+                    "Error saving rental to database after successful payment. Please contact support.",
+                    ex);
+            } 
         }
-
-		//TODO: finish this method and create an endpoint for it
+		
 		public async Task<IEnumerable<RentalGetByCustomerNameOutput>> GetRentalsByCustomerName(string customerName)
 		{
             var rentals = await _repository.GetByCustomerNameAsync(customerName);
@@ -48,8 +93,14 @@ namespace MovieRental.Rental.Features
                 Movie = r.Movie,
                 DaysRented = r.DaysRented,
                 PaymentMethod = r.PaymentMethod,
-                CustomerId = r.Customer!,
+                Customer = r.Customer!,         
             });
         }
-	}
+
+        private static decimal CalculateRentalPrice(int daysRented)
+        {
+            var valuePerDay = 2.50m;
+            return daysRented * valuePerDay;
+        }
+    }
 }

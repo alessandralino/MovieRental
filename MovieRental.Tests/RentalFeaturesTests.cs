@@ -1,4 +1,7 @@
+using Microsoft.Extensions.Logging;
 using Moq;
+using MovieRental.PaymentProviders.Entities;
+using MovieRental.PaymentProviders.Service;
 using MovieRental.Rental.DTO;
 using MovieRental.Rental.Features;
 using MovieRental.Rental.Repository;
@@ -8,22 +11,32 @@ namespace MovieRental.Tests
 { 
     public class RentalFeaturesTests
     {
+        Mock<IRentalRepository> _mockRepo;
+        Mock<IPaymentService> _mockPayment;
+        Mock<ILogger<RentalFeatures>> _mockLogger;
+
+        public RentalFeaturesTests()
+        {
+            _mockRepo = new Mock<IRentalRepository>();
+            _mockPayment = new Mock<IPaymentService>();
+            _mockLogger = new Mock<ILogger<RentalFeatures>>();
+        }
+
+
         [Fact]
         public async Task Save_Should_CallRepositoryAndReturnOutput()
         {
-            // Arrange
-            var mockRepo = new Mock<IRentalRepository>();
-
+            // Arrange 
             var input = new RentalSaveInput
             {
                 MovieId = 1,
                 DaysRented = 3,
-                PaymentMethod = "card",
+                PaymentMethod = "mbway",
                 CustomerId = 1,
                 Movie = new Movie.Movie { Id = 1, Title = "Inception" }
             };
  
-            mockRepo.Setup(r => r.SaveAsync(It.IsAny<ER.Rental>()))
+            _mockRepo.Setup(r => r.SaveAsync(It.IsAny<ER.Rental>()))
                     .ReturnsAsync((ER.Rental r) =>
                     {
                         r.Movie = r.Movie ?? new Movie.Movie 
@@ -38,18 +51,28 @@ namespace MovieRental.Tests
                         return r;
                     });
 
-            var features = new RentalFeatures(mockRepo.Object);
+            _mockPayment.Setup(s => s.ProcessPaymentAsync(
+                        It.IsAny<string>(), 
+                        It.IsAny<decimal>()))
+                .ReturnsAsync(new PaymentResult
+                {
+                    IsSuccess = true,
+                    TransactionId = "TX123"
+                });
+             
+
+            var features = new RentalFeatures(_mockRepo.Object, _mockPayment.Object, _mockLogger.Object);
 
             // Act
             var result = await features.Save(input);
 
             // Assert
-            mockRepo.Verify(r => r.SaveAsync(It.Is<ER.Rental>(
+            _mockRepo.Verify(r => r.SaveAsync(It.Is<ER.Rental>(
                 r => r.MovieId == input.MovieId && r.CustomerId == input.CustomerId)), Times.Once);
 
             Assert.Equal("Alice", result.Customer.Name);         
             Assert.Equal(input.DaysRented, result.DaysRented);
-            Assert.Equal(input.PaymentMethod, result.PaymentMethod);
+            Assert.Equal(input.PaymentMethod.ToUpper(), result.PaymentDetails.PaymentMethod);
             Assert.Equal("Inception", result.Movie!.Title); 
         }
 
@@ -57,8 +80,6 @@ namespace MovieRental.Tests
         public async Task GetRentalsByCustomerName_Should_ReturnRentals()
         {
             // Arrange
-            var mockRepo = new Mock<IRentalRepository>();
-
             var customerName = "Alice";
 
             var rentalsFromRepo = new List<ER.Rental>
@@ -83,16 +104,16 @@ namespace MovieRental.Tests
                 }
             };
 
-            mockRepo.Setup(r => r.GetByCustomerNameAsync(customerName))
+            _mockRepo.Setup(r => r.GetByCustomerNameAsync(customerName))
                     .ReturnsAsync(rentalsFromRepo);
 
-            var features = new RentalFeatures(mockRepo.Object);
+            var features = new RentalFeatures(_mockRepo.Object, _mockPayment.Object, _mockLogger.Object);
 
             // Act
             var result = await features.GetRentalsByCustomerName(customerName);
 
             // Assert
-            mockRepo.Verify(r => r.GetByCustomerNameAsync(customerName), Times.Once);
+            _mockRepo.Verify(r => r.GetByCustomerNameAsync(customerName), Times.Once);
 
             Assert.Equal(rentalsFromRepo.Count, result.Count());
              
