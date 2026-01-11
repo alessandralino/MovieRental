@@ -1,4 +1,6 @@
-﻿using MovieRental.Data;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using MovieRental.Data;
 
 namespace MovieRental.Movie
 {
@@ -13,16 +15,14 @@ namespace MovieRental.Movie
 		public Movie Save(Movie movie)
 		{
 			_movieRentalDb.Movies.Add(movie);
-			_movieRentalDb.SaveChanges();
+			_movieRentalDb.SaveChangesAsync();
 			return movie;
 		}
 
 		// TODO: tell us what is wrong in this method? Forget about the async, what other concerns do you have?
-		public List<Movie> GetAll()
+		public IQueryable<Movie> GetAll()
 		{
-			return _movieRentalDb.Movies.ToList();
-		}
-
-
+			return _movieRentalDb.Movies.AsNoTracking();
+        }
 	}
 }
